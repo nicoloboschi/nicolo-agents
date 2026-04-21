@@ -53,6 +53,71 @@ hindsight-agent setup marketing-seo \
 
 See [DEMO.md](../hindsight-wt3/hindsight-agent/DEMO.md) for the full demo walkthrough.
 
+## Architecture
+
+### The skill (`agent-knowledge`)
+
+Installed into each agent's workspace at `skills/agent-knowledge/SKILL.md`. The agent reads it at session startup (patched into AGENTS.md step 5). It provides:
+
+- `hindsight-agent pages list <agent-id>` — read all knowledge pages (mandatory at startup)
+- `hindsight-agent pages create <agent-id> "<name>" "<source_query>"` — create a new page
+- `hindsight-agent pages update/delete` — manage existing pages
+- `hindsight-agent recall <agent-id> "<query>"` — search all memories for ad-hoc research
+- `hindsight-agent documents <agent-id>` — list retained reference docs
+
+The agent ID is baked into the skill at setup time. The CLI resolves agent ID → bank, KB, API URL via `~/.hindsight-agent/config.json`. The agent never sees Hindsight internals.
+
+### Knowledge Base (KB)
+
+A KB groups related knowledge pages under a shared purpose. Created during setup, scoped per agent. Pages created by the template or the agent are assigned to the KB via `kb_id`.
+
+In the Hindsight Control Plane UI, the KB selector filters mental models — so you see only this agent's pages, not the whole bank.
+
+### Mental Models (knowledge pages)
+
+Each page has:
+- **`source_query`** — a question the system re-asks after every consolidation to rebuild the page. This is the key abstraction: the agent writes it once, the system runs it forever.
+- **`trigger.mode: "delta"`** — only processes new observations since last refresh
+- **`trigger.refresh_after_consolidation: true`** — auto-updates after each consolidation cycle
+- **`trigger.exclude_mental_models: true`** — pages synthesize from observations only, not from each other
+- **`trigger.fact_types: ["observation"]`** — scoped to observations (not raw world/experience facts)
+
+The source_query steers what the page becomes. The skill includes patterns:
+
+```
+# Best practices (merges reference docs with real results)
+"What are the best practices for [topic], combining industry standards
+with what has actually worked for us? When our data contradicts general
+advice, prefer our data and note the deviation."
+
+# Performance data
+"What [topic] strategies have performed well or poorly based on analytics
+and user feedback? Include specific numbers when available."
+
+# User preferences
+"What are the user's preferences for [topic], including explicit rules
+they've stated and patterns observed from their feedback?"
+```
+
+### Data flow
+
+```
+[Reference docs]  ──→  retain (setup --content)  ──→  [Bank]
+[Conversations]   ──→  retain (openclaw plugin)  ��─→  [Bank]
+                                                        ↓
+                                                  consolidation
+                                                        ↓
+                                                  observations
+                                                        ↓
+                                              page refresh (delta)
+                                                        ↓
+                                              source_query → reflect
+                                                        ↓
+                                              updated page content
+                                                        ↓
+                                    agent reads at next session startup
+```
+
 ## Adding a new agent
 
 ```
