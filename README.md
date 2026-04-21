@@ -127,3 +127,75 @@ my-agent/
 ```
 
 The template defines: reflect/retain missions, disposition, pre-configured pages with source queries, and directives. Pages use `"mode": "delta"` so each refresh only processes new observations.
+
+## Getting started
+
+### Requirements
+
+- [Hindsight](https://github.com/vectorize-io/hindsight) API running locally (default: `http://localhost:8888`)
+- [OpenClaw](https://docs.openclaw.ai) installed with gateway running
+- Python 3.11+ with [uv](https://docs.astral.sh/uv/)
+- Node.js 22+
+
+### 1. Clone and checkout the hindsight branch
+
+```bash
+git clone https://github.com/vectorize-io/hindsight.git ~/dev/hindsight
+cd ~/dev/hindsight
+git checkout feat/agent-procedural-memory
+```
+
+### 2. Start Hindsight (API + Control Plane)
+
+```bash
+cd ~/dev/hindsight
+cp .env.example .env  # edit with your LLM API key
+./scripts/dev/start.sh
+```
+
+### 4. Install the hindsight-agent CLI
+
+```bash
+cd ~/dev/hindsight/hindsight-agent
+uv tool install -e .
+```
+
+### 5. Set up the agent
+
+```bash
+hindsight-agent setup marketing-seo \
+  --bank-id demo-marketing-seo \
+  --harness openclaw \
+  --template ~/dev/nicolo-agents/marketing-seo-blog-posts/template.json \
+  --content ~/dev/nicolo-agents/marketing-seo-blog-posts/content
+```
+
+### 6. Restart the OpenClaw gateway
+
+```bash
+openclaw gateway restart
+```
+
+### 7. Trigger initial consolidation
+
+The reference doc was ingested at setup. Consolidate so pages populate:
+
+```bash
+curl -X POST http://localhost:8888/v1/default/banks/demo-marketing-seo/consolidate
+```
+
+Wait ~30-60s for consolidation + page refresh.
+
+### 8. Chat with the agent
+
+```bash
+openclaw tui --session agent:marketing-seo:main:random1
+```
+
+The agent reads its knowledge pages at startup and applies them. Feed it preferences, analytics data, and watch the pages evolve after each consolidation cycle.
+
+### Verify pages
+
+```bash
+hindsight-agent pages list marketing-seo
+```
