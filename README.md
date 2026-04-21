@@ -176,17 +176,7 @@ hindsight-agent setup marketing-seo \
 openclaw gateway restart
 ```
 
-### 7. Trigger initial consolidation
-
-The reference doc was ingested at setup. Consolidate so pages populate:
-
-```bash
-curl -X POST http://localhost:8888/v1/default/banks/demo-marketing-seo/consolidate
-```
-
-Wait ~30-60s for consolidation + page refresh.
-
-### 8. Chat with the agent
+### 7. Chat with the agent
 
 ```bash
 openclaw tui --session agent:marketing-seo:main:random1
