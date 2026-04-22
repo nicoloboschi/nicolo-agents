@@ -65,13 +65,7 @@ Installed into each agent's workspace at `skills/agent-knowledge/SKILL.md`. The 
 - `hindsight-agent recall <agent-id> "<query>"` — search all memories for ad-hoc research
 - `hindsight-agent documents <agent-id>` — list retained reference docs
 
-The agent ID is baked into the skill at setup time. The CLI resolves agent ID → bank, KB, API URL via `~/.hindsight-agent/config.json`. The agent never sees Hindsight internals.
-
-### Knowledge Base (KB)
-
-A KB groups related knowledge pages under a shared purpose. Created during setup, scoped per agent. Pages created by the template or the agent are assigned to the KB via `kb_id`.
-
-In the Hindsight Control Plane UI, the KB selector filters mental models — so you see only this agent's pages, not the whole bank.
+The agent ID is baked into the skill at setup time. The CLI resolves agent ID → bank + API URL via `~/.hindsight-agent/config.json`. The agent never sees Hindsight internals.
 
 ### Mental Models (knowledge pages)
 
